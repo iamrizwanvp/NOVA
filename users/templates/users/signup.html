@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOVA | Sign Up</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Background */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: url("{% static 'images/bg-login.jpg' %}") no-repeat center center/cover;
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1;
+    }
+
+    .signup-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .signup-card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      padding: 2rem;
+      color: #fff;
+      animation: fadeIn 1s ease forwards;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-floating label {
+      color: rgba(255,255,255,0.8);
+    }
+    .form-control {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+    }
+    .form-control:focus {
+      background: rgba(255,255,255,0.3);
+      color: #fff;
+      outline: none;
+      box-shadow: 0 0 5px #ff3d71;
+    }
+
+    .btn-signup {
+      width: 100%;
+      background: #e50914;
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 0.75rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .btn-signup:hover {
+      background: #f40612;
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .signup-footer {
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .signup-footer a {
+      color: #aaa;
+      text-decoration: none;
+    }
+    .signup-footer a:hover {
+      text-decoration: underline;
+      color: #fff;
+    }
+
+    .welcome-text {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <div class="signup-card">
+      <h2 class="text-center mb-4">Join NOVA</h2>
+      <div class="welcome-text">
+        <p>Create your account and start buying & selling with ease</p>
+      </div>
+      
+      <form id="signup-form">
+        {% csrf_token %}
+        <div class="form-floating mb-4">
+          <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+          <label for="email">Email address</label>
+        </div>
+        <button type="submit" class="btn btn-signup">Send OTP</button>
+      </form>
+
+      <div class="signup-footer mt-3">
+        <p>Already have an account? <a href="{% url 'login_page' %}">Sign In</a></p>
+        <p class="mt-2 text-muted" style="font-size: 0.8rem;">
+          By signing up, you agree to our Terms of Service
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/auth.js' %}"></script>
+</body>
+</html>

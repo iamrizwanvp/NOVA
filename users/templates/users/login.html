@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOVA | Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Background */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: url("{% static 'images/bg-login.jpg' %}") no-repeat center center/cover;
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1;
+    }
+
+    .login-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      padding: 2rem;
+      color: #fff;
+      animation: fadeIn 1s ease forwards;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-floating label {
+      color: rgba(255,255,255,0.8);
+    }
+    .form-control {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+    }
+    .form-control:focus {
+      background: rgba(255,255,255,0.3);
+      color: #fff;
+      outline: none;
+      box-shadow: 0 0 5px #ff3d71;
+    }
+
+    .btn-login {
+      width: 100%;
+      background: #e50914;
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 0.75rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .btn-login:hover {
+      background: #f40612;
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-footer {
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .login-footer a {
+      color: #aaa;
+      text-decoration: none;
+    }
+    .login-footer a:hover {
+      text-decoration: underline;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <h2 class="text-center mb-4">Sign In</h2>
+      <form id="login-form">
+        {% csrf_token %}
+        <div class="form-floating mb-3">
+          <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+          <label for="email">Email address</label>
+        </div>
+        <div class="form-floating mb-4">
+          <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+          <label for="password">Password</label>
+        </div>
+        <button type="submit" class="btn btn-login">Login</button>
+      </form>
+      
+
+      <div class="login-footer mt-3">
+        <p>New to NOVA? <a href="{% url 'signup_page' %}">Sign Up</a></p>
+        <p><a href="{% url 'forgot_password' %}">Forgot your password?</a></p>
+      </div>
+    </div>
+  </div>
+  <script src="{% static 'js/auth.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    bindLoginPage();
+  });
+</script>
+
+</body>
+</html>

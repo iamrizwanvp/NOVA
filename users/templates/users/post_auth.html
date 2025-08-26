@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NOVA – Finishing Sign-in…</title>
+</head>
+<body>
+  <p>Finishing sign-in…</p>
+  <script>
+    // Values injected by the view
+    const access = "{{ access }}";
+    const refresh = "{{ refresh }}";
+
+    // Store tokens for API calls
+    localStorage.setItem('access', access);
+    localStorage.setItem('refresh', refresh);
+
+    // Redirect to the feed page (server URL reverse happened in view)
+    window.location.href = "{% url redirect_to %}";
+  </script>
+  <script src="{% static 'js/auth.js' %}?v=2"></script>
+
+</body>
+</html>

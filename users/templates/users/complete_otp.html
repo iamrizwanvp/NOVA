@@ -1,0 +1,227 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOVA | Verify OTP</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Background */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: url("{% static 'images/bg-login.jpg' %}") no-repeat center center/cover;
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1;
+    }
+
+    .otp-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .otp-card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      padding: 2rem;
+      color: #fff;
+      animation: fadeIn 1s ease forwards;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-floating label {
+      color: rgba(255,255,255,0.8);
+    }
+    .form-control {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 0.5rem;
+    }
+    .form-control:focus {
+      background: rgba(255,255,255,0.3);
+      color: #fff;
+      outline: none;
+      box-shadow: 0 0 10px #ff3d71;
+    }
+    .form-control::placeholder {
+      color: rgba(255,255,255,0.6);
+      font-size: 1rem;
+      letter-spacing: normal;
+    }
+
+    .btn-verify {
+      width: 100%;
+      background: #e50914;
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 0.75rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .btn-verify:hover {
+      background: #f40612;
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .otp-footer {
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .otp-footer a {
+      color: #aaa;
+      text-decoration: none;
+    }
+    .otp-footer a:hover {
+      text-decoration: underline;
+      color: #fff;
+    }
+
+    .instruction-text {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+
+    .email-display {
+      color: #ff3d71;
+      font-weight: bold;
+    }
+
+    .resend-section {
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .resend-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+    .resend-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: #ff3d71;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="otp-container">
+    <div class="otp-card">
+      <h2 class="text-center mb-4">Verify Your Email</h2>
+      
+      <div class="instruction-text">
+        <p>We've sent a 6-digit verification code to:</p>
+        <p class="email-display">{{ email|default:"your email" }}</p>
+        <p>Enter the code below to continue</p>
+      </div>
+
+      <form id="verify-otp-form" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="email" value="{{ email }}">
+        
+        <div class="form-floating mb-4">
+          <input 
+            type="text" 
+            class="form-control" 
+            id="otp" 
+            name="otp" 
+            placeholder="000000"
+            maxlength="6" 
+            pattern="[0-9]{6}"
+            required
+            autocomplete="one-time-code"
+          >
+          <label for="otp">Enter 6-digit code</label>
+        </div>
+
+        <button type="submit" class="btn btn-verify">Verify & Continue</button>
+      </form>
+
+      <div class="resend-section">
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 0.5rem;">
+          Didn't receive the code?
+        </p>
+        <button type="button" class="resend-btn" onclick="resendOTP()">
+          Resend Code
+        </button>
+      </div>
+
+      <div class="otp-footer mt-3">
+        <p><a href="{% url 'signup_page' %}">← Back to Sign Up</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/auth.js' %}?v=2"></script>
+  <script>
+    // Auto-focus on OTP input
+    document.getElementById('otp').focus();
+
+    // Format OTP input (optional: auto-space digits)
+    document.getElementById('otp').addEventListener('input', function(e) {
+      // Remove any non-digits
+      this.value = this.value.replace(/\D/g, '');
+      
+      // Limit to 6 digits
+      if (this.value.length > 6) {
+        this.value = this.value.substr(0, 6);
+      }
+    });
+
+    // Resend OTP function (you can customize this)
+    function resendOTP() {
+      alert('Resending OTP... (Implement this functionality)');
+      // You can implement actual resend logic here
+    }
+
+    // Auto-submit when 6 digits entered (optional)
+    document.getElementById('otp').addEventListener('input', function(e) {
+      if (this.value.length === 6) {
+        // Optional: auto-submit after 1 second delay
+        setTimeout(() => {
+          if (this.value.length === 6) {
+            document.getElementById('verify-otp-form').dispatchEvent(new Event('submit'));
+          }
+        }, 500);
+      }
+    });
+  </script>
+</body>
+</html>
