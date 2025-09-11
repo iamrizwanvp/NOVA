@@ -1,65 +1,40 @@
-from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import Profile
-
-class ProfileSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(source='user.email', read_only=True)
-    username = serializers.CharField(source='user.username', required=False)
-
-    class Meta:
-        model = Profile
-        fields = ['email', 'username', 'profile_picture', 'address', 'state', 'country', 'pincode']
-
-    def update(self, instance, validated_data):
-        # Update related User fields
-        user_data = validated_data.pop('user', {})
-        if 'username' in user_data:
-            instance.user.username = user_data['username']
-            instance.user.save()
-
-        # Update Profile fields
-        return super().update(instance, validated_data)
-
-
 # users/serializers.py
-
-from django.conf import settings
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import check_password
 from .models import Profile
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 
-
+# Profile serializer (for viewing)
 class ProfileSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(source="user.email", read_only=True)
-
     class Meta:
         model = Profile
-        fields = ["nickname", "email", "profile_pic"]
+        fields = ["id", "nickname", "profile_picture"]
 
 
+# Profile update serializer (for editing nickname, profile picture, etc.)
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["nickname", "profile_pic"]
+        fields = ["nickname", "profile_picture"]
 
 
+# Change password serializer
 class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True)
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
 
-    def validate_old_password(self, value):
-        user = self.context["request"].user
-        if not check_password(value, user.password):
-            raise serializers.ValidationError("Old password is incorrect")
+    def validate_new_password(self, value):
+        validate_password(value)  # uses Django’s built-in password validators
         return value
 
     def save(self, **kwargs):
         user = self.context["request"].user
+        old_password = self.validated_data["old_password"]
         new_password = self.validated_data["new_password"]
+
+        if not user.check_password(old_password):
+            raise serializers.ValidationError({"old_password": "Wrong password"})
+
         user.set_password(new_password)
         user.save()
         return user

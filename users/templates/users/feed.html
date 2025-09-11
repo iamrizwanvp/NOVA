@@ -1,5 +1,518 @@
 {% load static %}
-<div id="feed-root"></div>
-<button id="logout-btn">Logout</button>
-<script src="{% static 'js/auth.js' %}?v=2"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NOVA | Feed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Optional Bootstrap for quick layout primitives -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-dark: #0b0b0b;
+      --bg-darker: #080808;
+      --card: #141414;
+      --text: #e6e6e6;
+      --muted: #9aa0a6;
+      --primary: #e50914;
+      --seg-bg: #1c1c1c;
+      --seg-knob: #fff;
+      --glass: rgba(20,20,20,0.55);
+      --glass-strong: rgba(0,0,0,0.65);
+      --border: rgba(255,255,255,0.12);
+      --accent: #ff3d71;
+      --green: #16c79a;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-dark);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Fullscreen video background */
+    .video-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+    }
+    .video-bg video {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      filter: brightness(0.45) saturate(1.1);
+      object-fit: cover;
+    }
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(229,9,20,0.10), transparent 60%),
+                  radial-gradient(1200px 800px at 80% 0%, rgba(0,0,0,0.35), transparent 60%),
+                  linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.7));
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Header */
+    .nova-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.35));
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .brand .dot {
+      color: var(--primary);
+    }
+
+    /* iPhone-style segmented control */
+    .segmented {
+      display: inline-flex;
+      background: var(--seg-bg);
+      border-radius: 999px;
+      padding: 6px;
+      gap: 6px;
+      border: 1px solid var(--border);
+    }
+    .segmented button {
+      position: relative;
+      border: 0;
+      color: var(--text);
+      background: transparent;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: color .2s ease-in-out, transform .15s ease;
+    }
+    .segmented button.active {
+      color: #000;
+      background: var(--seg-knob);
+      box-shadow: 0 1px 8px rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.15);
+      transform: translateY(-1px);
+    }
+
+    /* Top utility row */
+    .utility {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .pill {
+      border: 1px solid var(--border);
+      background: var(--glass);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+      display: inline-block;
+      box-shadow: 0 0 0 3px rgba(22,199,154,0.15);
+    }
+
+    /* Profile panel */
+    .profile-panel {
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 14px;
+      align-items: center;
+      margin-top: 14px;
+      animation: fadeIn .25s ease;
+    }
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #222;
+      border: 1px solid var(--border);
+      object-fit: cover;
+    }
+    .logout-btn {
+      border: 1px solid var(--border);
+      background: #1b1b1b;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: transform .1s ease, background .2s ease, border .2s ease;
+    }
+    .logout-btn:hover { background: #252525; }
+    .logout-btn:active { transform: scale(0.98); }
+
+    /* Sort segmented */
+    .sort-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 20px 0 8px 0;
+    }
+
+    /* Card row */
+    .row-wrap {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width:1400px){ .row-wrap{ grid-template-columns: repeat(5, 1fr);} }
+    @media (max-width:1200px){ .row-wrap{ grid-template-columns: repeat(4, 1fr);} }
+    @media (max-width:992px){  .row-wrap{ grid-template-columns: repeat(3, 1fr);} }
+    @media (max-width:768px){  .row-wrap{ grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width:520px){  .row-wrap{ grid-template-columns: repeat(1, 1fr);} }
+
+    .cardx {
+      position: relative;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 14px 24px rgba(0,0,0,0.35);
+      transform-origin: center center;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+      cursor: pointer;
+      isolation: isolate;
+    }
+    .cardx:hover {
+      transform: scale(1.06);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+      border-color: rgba(255,255,255,0.2);
+      z-index: 1;
+    }
+    .thumb {
+      width: 100%;
+      aspect-ratio: 16/10;
+      object-fit: cover;
+      display: block;
+      filter: saturate(1.1);
+    }
+    .shine:before {
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.05) 30%, transparent 60%);
+      opacity: 0;
+      transition: opacity .25s ease;
+      pointer-events:none;
+    }
+    .cardx:hover .shine:before { opacity: 1; }
+    .card-body {
+      padding: 12px 12px 14px 12px;
+    }
+    .title {
+      font-weight: 700;
+      font-size: 0.98rem;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .price {
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .badge-cat {
+      position:absolute;
+      top: 10px; left: 10px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 0.74rem;
+      padding: 6px 8px;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 30px;
+      padding: 24px 0 40px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Video Background -->
+  <div class="video-bg">
+    <video id="bg-video" autoplay muted loop playsinline poster="{% static 'images/hero_poster.jpg' %}">
+      <source src="{% static 'videos/hero.mp4' %}" type="video/mp4" />
+    </video>
+  </div>
+  <div class="video-overlay"></div>
+
+  <!-- App Root -->
+  <div id="root"></div>
+
+  <!-- React via CDN (UMD) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel for inline JSX in dev -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useEffect, useMemo, useState } = React;
+
+    // Helper: auth token
+    function getAccessToken(){
+      try { return localStorage.getItem('access_token'); } catch { return null; }
+    }
+
+    function Header({activeTab, setActiveTab, profileOpen, setProfileOpen, profile}){
+      return (
+        <header className="nova-header">
+          <div className="container py-3">
+            <div className="d-flex justify-content-between align-items-center">
+              <a className="brand h4 m-0" href="#">
+                NOVA<span className="dot">.</span>
+              </a>
+
+              <div className="utility">
+                <span className="pill">
+                  <span className="dot"></span> Authenticated
+                </span>
+
+                <div className="segmented">
+                  {['Profile','Help','About','Settings'].map(tab => (
+                    <button
+                      key={tab}
+                      className={activeTab===tab ? 'active' : ''}
+                      onClick={()=>{
+                        setActiveTab(tab);
+                        if(tab==='Profile'){ setProfileOpen(v=>!v); }
+                        else { setProfileOpen(false); }
+                      }}
+                    >{tab}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {profileOpen && (
+              <div className="profile-panel">
+                <img
+                  className="avatar"
+                  src={profile?.profile_pic || '{% static "images/avatar_fallback.png" %}'}
+                  alt="avatar"
+                  onError={(e)=>{ e.currentTarget.src='{% static "images/avatar_fallback.png" %}'; }}
+                />
+                <div>
+                  <div className="fw-bold">Welcome back</div>
+                  <div className="muted">
+                    <span className="me-2">Email:</span>{profile?.email || '—'}
+                  </div>
+                  <div className="muted">
+                    <span className="me-2">Username:</span>{profile?.username || '—'}
+                  </div>
+                  <div className="muted">
+                    <span className="me-2">Nickname:</span>{profile?.nickname || '—'}
+                  </div>
+                </div>
+                <div className="d-flex gap-2">
+                  <a className="btn btn-sm btn-outline-light" href="/users/update-password/">Change Password</a>
+                  <button className="logout-btn" onClick={async ()=>{
+                    try{
+                      const access = getAccessToken();
+                      const refresh = localStorage.getItem('refresh_token');
+                      await fetch('/users/api/logout/', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type':'application/json',
+                          ...(access ? {Authorization: `Bearer ${access}`} : {})
+                        },
+                        body: JSON.stringify({ refresh })
+                      });
+                    }catch(e){}
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/users/login/';
+                  }}>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </header>
+      );
+    }
+
+    function ProductCard({p}){
+      return (
+        <div className="cardx">
+          <div className="shine">
+            <span className="badge-cat">{p.category || 'Other'}</span>
+            <img className="thumb" src={p.image1 || '{% static "images/product_fallback.jpg" %}'} alt={p.title} 
+                 onError={(e)=>{ e.currentTarget.src='{% static "images/product_fallback.jpg" %}'; }} />
+          </div>
+          <div className="card-body">
+            <div className="title">{p.title}</div>
+            <div className="d-flex justify-content-between">
+              <span className="muted">{(p.description || '').slice(0,40)}{(p.description||'').length>40?'…':''}</span>
+              <span className="price">{p.price ? `₹ ${Number(p.price).toLocaleString()}` : '—'}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    function App(){
+      const [activeTab, setActiveTab] = useState('Profile');
+      const [profileOpen, setProfileOpen] = useState(false);
+      const [profile, setProfile] = useState(null);
+      const [products, setProducts] = useState([]);
+      const [sortBy, setSortBy] = useState('date'); // 'date' | 'name' | 'price'
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState('');
+
+      // Auth guard
+      useEffect(()=>{
+        const tok = getAccessToken();
+        if(!tok){
+          window.location.href = '/users/login/';
+        }
+      },[]);
+
+      // Load profile and products
+      useEffect(()=>{
+        let cancelled = false;
+        const tok = getAccessToken();
+
+        async function load(){
+          setLoading(true);
+          setError('');
+          try{
+            // Profile (JWT required)
+            const pRes = await fetch('/users/api/profile/', {
+              headers: {
+                'Accept':'application/json',
+                'Authorization': `Bearer ${tok}`
+              }
+            });
+            if(pRes.ok){
+              const pdata = await pRes.json();
+              if(!cancelled) setProfile(pdata);
+            } else {
+              if(!cancelled) setProfile(null);
+            }
+
+            // Products list (read allowed for anonymous, but we are authed)
+            // Using /products/products/ as configured by products.urls included under /products/
+            const prodRes = await fetch('/products/products/', { headers:{'Accept':'application/json'} });
+            if(!prodRes.ok) throw new Error('Failed to load products');
+            const arr = await prodRes.json();
+            if(!cancelled) setProducts(Array.isArray(arr)?arr:arr.results||[]);
+          }catch(e){
+            if(!cancelled) setError(e.message || 'Failed to load');
+          }finally{
+            if(!cancelled) setLoading(false);
+          }
+        }
+        load();
+        return ()=>{ cancelled = true; }
+      },[]);
+
+      const sorted = useMemo(()=>{
+        const list = [...products];
+        if(sortBy==='name'){
+          list.sort((a,b)=>String(a.title||'').localeCompare(String(b.title||'')));
+        } else if (sortBy==='price'){
+          list.sort((a,b)=>(Number(a.price||0) - Number(b.price||0)));
+        } else {
+          // date: created_at desc
+          list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
+        }
+        return list;
+      },[products, sortBy]);
+
+      return (
+        <>
+          <Header
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            profileOpen={profileOpen}
+            setProfileOpen={setProfileOpen}
+            profile={profile}
+          />
+
+          <main className="container py-3">
+            <div className="sort-row">
+              <div className="pill">Browse Listings</div>
+              <div className="segmented">
+                {['date','name','price'].map(key=>(
+                  <button key={key}
+                          className={sortBy===key ? 'active':''}
+                          onClick={()=>setSortBy(key)}>
+                    {key==='date'?'Date': key==='name'?'Name':'Price'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loading && <div className="muted">Loading…</div>}
+            {error && <div className="text-danger">{error}</div>}
+
+            {!loading && !error && (
+              <section className="row-wrap">
+                {sorted.map(p => (
+                  <ProductCard key={p.id || `${p.title}-${p.created_at}`} p={p} />
+                ))}
+              </section>
+            )}
+          </main>
+
+          <footer>
+            <div className="container">
+              <div className="row g-3">
+                <div className="col-md">
+                  <div className="fw-bold text-white">About</div>
+                  <div className="muted">
+                    NOVA is a community marketplace for buying and selling new or used products. 
+                  </div>
+                </div>
+                <div className="col-md">
+                  <div className="fw-bold text-white">Contact</div>
+                  <div className="muted">
+                    Email: support@nova.com
+                  </div>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

@@ -449,7 +449,6 @@ class ProfileView(generics.RetrieveAPIView):
     def get_object(self):
         return self.request.user.profile
 
-
 class ProfileUpdateView(generics.UpdateAPIView):
     serializer_class = ProfileUpdateSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -458,12 +457,20 @@ class ProfileUpdateView(generics.UpdateAPIView):
         return self.request.user.profile
 
     def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            self.get_object(), data=request.data, partial=True
-        )
+        profile = self.get_object()
+        serializer = self.get_serializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+
+        # check if any valid field is present
+        if not serializer.validated_data:
+            return Response(
+                {"error": "No valid fields provided"},
+                status=400
+            )
+
         serializer.save()
         return Response({"message": "Profile updated"})
+
 
 
 class ChangePasswordView(APIView):
