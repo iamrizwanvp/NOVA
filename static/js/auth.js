@@ -143,7 +143,7 @@ function bindSetPasswordPage() {
       Tokens.set({ access: data.access_token, refresh: data.refresh_token });
       SignupState.clear();
       alert('Signup complete!');
-      window.location.href = '/users/feed/';
+      window.location.href = '/products/dashboard/';
     } catch (err) {
       alert('Set password failed: ' + err.message);
     }
@@ -167,20 +167,20 @@ function bindLoginPage() {
     try {
       const res = await fetch('/users/api/token/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      if (!res.ok) {
-        throw new Error('Invalid credentials');
-      }
+      if (!res.ok) throw new Error('Invalid credentials');
 
       const data = await res.json();
-
       Tokens.set({ access: data.access, refresh: data.refresh });
-      window.location.href = '/users/feed/';
+
+      // Use the next param if present, otherwise fallback
+      const params = new URLSearchParams(window.location.search);
+      const nextUrl = params.get('next') || '/products/dashboard/';
+
+      window.location.href = nextUrl;
     } catch (err) {
       alert('Login failed: ' + err.message);
     }

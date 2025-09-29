@@ -23,20 +23,32 @@ from django.urls import path, include
 
 def redirect_to_signup(request):
     return redirect('send_otp')  # or 'login' or 'feed', whatever you want as homepage
+# nova_project/urls.py (snippet)
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', include('users.urls')),
-    path('api/users/', include('users.urls')),
-    path('api/', include('products.urls')),
-    path('products/', include('products.urls')),
-    path('users/', include('users.urls')),
-    path("", include("home.urls")),  
 
+    # USERS
+    path('api/users/', include('users.urls')),
+    path('users/', include('users.urls')),
+
+    # PRODUCTS (API + HTML all in one)
+    path('products/', include('products.urls')),
+
+    # HOME
+    path('', include('home.urls')),
 ]
 
 
 
-
-
-
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

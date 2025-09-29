@@ -368,11 +368,29 @@ def get_my_token(request):
 # You can remove these if you go full API + SPA/mobile only.
 # ───────────────────────────────────────────────────────────────────────────────
 def signup_page(request):        return render(request, 'users/signup.html')
-def login_page(request):         return render(request, 'users/login.html')
-def feed_page(request):          return render(request, 'users/feed.html')
 def forgot_password_page(request):
     return render(request, "users/forgot_password.html")
 
+from django.contrib.auth import login as auth_login
+from django.shortcuts import render, redirect
+
+def login_page(request):
+    next_url = request.GET.get('next') or '/products/dashboard/'
+    
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=email, password=password)
+        if user:
+            auth_login(request, user)
+            return redirect(next_url)
+        else:
+            return render(request, 'users/login.html', {
+                'error': 'Invalid email or password'
+            })
+
+    return render(request, 'users/login.html')
 
 
 
@@ -495,3 +513,6 @@ class PublicProfileView(generics.RetrieveAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]  # only logged in users can view
     lookup_field = "id"  # this makes /api/profile/<id>/ work
+    
+   
+

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  {% load static %}
+</head>
+<body>
+  <div style="padding: 20px;">
+    <h1>Dashboard</h1>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <button onclick="toggleProfile()">Profile</button>
+      <button onclick="goToProducts()">Products</button>
+      <button onclick="addChat()">Add Chat</button>
+    </div>
+
+    <div id="dashboardContent">
+      <!-- Left side: actions -->
+      <div style="flex: 2;">
+        <h3>Find User by ID</h3>
+        <input type="number" id="findUserId" placeholder="Enter user ID">
+        <button onclick="findUser()">Find</button>
+        <pre id="findUserResult"></pre>
+
+        <h3>Update Profile</h3>
+        <input type="text" id="nickname" placeholder="New Nickname">
+        <input type="file" id="profilePicture">
+        <button onclick="updateProfile()">Update</button>
+        <pre id="updateProfileResult"></pre>
+
+        <h3>Change Password</h3>
+        <input type="password" id="oldPassword" placeholder="Old Password">
+        <input type="password" id="newPassword" placeholder="New Password">
+        <button onclick="changePassword()">Change</button>
+        <pre id="changePasswordResult"></pre>
+      </div>
+
+      <!-- Right side: profile preview -->
+      <div style="flex: 1; border-left: 1px solid #ccc; padding-left: 20px;">
+        <h3>Profile Preview</h3>
+        <p><strong>Nickname:</strong> <span id="profileNickname"></span></p>
+        <img id="profilePicPreview" src="" alt="Profile picture" style="max-width: 150px; border-radius: 8px;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Load external JS -->
+  <script src="{% static 'products/dashboard.js' %}"></script>
+ā
+  <script>
+    // Toggle profile section
+    function toggleProfile() {
+      const content = document.getElementById('dashboardContāāāent');
+      if (content.style.display === 'none') {āā
+        content.style.display = 'flex';
+      } else {ā
+        content.style.display = 'none';
+      }
+    }
+
+    // Redirect to products pageāāā
+    function goToProducts() {
+      window.location.href = '/products/page/'; // update later when products.html exists
+    }
+
+    // Placeholder for add chat
+    function addChat() {
+      window.location.href = '/chat/page/';
+    }
+  </script>
+
+
+</body>
+</html>
+<style>
+  body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: #f6f8fa;
+    margin: 0;
+    padding: 0;
+  }
+  .dashboard-container {
+    display: flex;
+    gap: 32px;
+    max-width: 1100px;āāā
+    margin: 40px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1.5px 6px rgba(0,0,0,0.03);
+  }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 28px 24px 20px 24px;
+    margin-bottom: 24px;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  }
+  .actions-section {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .profile-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  h1, h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-weight: 600;
+    color: #22223b;
+  }
+  label {
+    font-weight: 500;
+    color: #4a4e69;
+    margin-bottom: 6px;
+    display: block;
+  }
+  input[type="text"], input[type="number"], input[type="password"], input[type="file"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 1rem;
+    background: #f9fafb;
+    transition: border 0.2s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
+    border: 1.5px solid #4f8cff;
+    outline: none;
+    background: #fff;
+  }
+  button {
+    background: linear-gradient(90deg, #4f8cff 0%, #38b6ff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1.5px 6px rgba(79,140,255,0.08);
+  }
+  button:hover {
+    background: linear-gradient(90deg, #38b6ff 0%, #4f8cff 100%);
+    box-shadow: 0 4px 16px rgba(56,182,255,0.13);
+  }
+  pre {
+    background: #f3f6fa;
+    border-radius: 7px;
+    padding: 10px 14px;
+    font-size: 0.97rem;
+    color: #22223b;
+    margin: 0 0 8px 0;
+    overflow-x: auto;
+  }
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(120deg, #f8fafc 60%, #e3f0ff 100%);
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(56,182,255,0.07);
+    padding: 32px 18px 24px 18px;
+    text-align: center;
+  }
+  .profile-card img {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 50%;
+    margin-bottom: 16px;
+    border: 3px solid #4f8cff22;
+    background: #fff;
+    object-fit: cover;
+  }
+  .profile-card strong {
+    color: #22223b;
+    font-size: 1.1rem;
+  }
+  @media (max-width: 900āāāpx) {
+    .dashboard-container {
+      flex-direction: column;
+      padding: 10px;
+    }
+    .actions-section, .profile-section {
+      width: 100%;
+    }
+  }
+</style>

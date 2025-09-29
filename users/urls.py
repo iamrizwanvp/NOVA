@@ -43,16 +43,17 @@ from .views import (
     profile_api,
 
     # Simple HTML pages (optional)
-    signup_page, login_page, feed_page,
+    signup_page,
 )
+
+
 
 urlpatterns = [
     # ============================================================================
     # HTML PAGES (Frontend Routes)
     # ============================================================================
     path('signup/', signup_page, name='signup_page'),
-    path('login/', login_page, name='login_page'),              # ← Fixed: matches template usage
-    path('feed/', feed_page, name='feed_page'),
+    path('login/', views.login_page, name='login_page'),           # ← Fixed: matches template usage
     path('forgot-password/', forgot_password_page, name='forgot_password'),
     path('complete-otp/', complete_otp_page, name='complete_otp_page'),
     path('update-password/', update_password_page, name='update_password_page'),
